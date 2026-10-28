@@ -29,15 +29,15 @@ pytest -q
 ## 想加平台支持？
 
 抖音的抓流步骤在 `docs/douyin.md`。B站/YouTube 建议**不要**在仓库里内置下载器——
-`yt-dlp` 已经很成熟，正确做法是文档里写清楚「先 `yt-dlp -f bestaudio`，再 `rv transcribe`」。
+`yt-dlp` 已经很成熟，正确做法是文档里写清楚「先 `yt-dlp -f bestaudio`，再 `readvideo transcribe`」。
 除非有 yt-dlp 覆盖不了的平台，否则不引入新依赖。
 
 ## 报 bug 请带这些
 
-- `rv --version` 和 `python -V`
+- `readvideo --version` 和 `python -V`
 - 完整命令行（URL 请打码签名参数）
 - 完整报错
-- 媒体的 `rv probe` 输出（如果拿得到）
+- 媒体的 `readvideo probe` 输出（如果拿得到）
 
 ## 提交信息
 

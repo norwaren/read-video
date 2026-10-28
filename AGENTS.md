@@ -6,7 +6,8 @@
 ## 这个仓库是什么
 
 `read-video` 是一个把视频转成可读材料的 CLI：抽帧 + 语音转写。
-核心实现在 `src/readvideo/`，入口是 `rv` 命令。
+核心实现在 `src/readvideo/`，入口命令是 `readvideo`（短别名 `rv`，但 Windows PowerShell 里
+`rv` 是 `Remove-Variable` 的内置别名，脚本和 CI 一律用 `readvideo`）。
 
 ## 目录导航
 
@@ -41,8 +42,8 @@ pytest -q
 ```bash
 # 合成一段素材，跑通全链路（不联网）
 ffmpeg -f lavfi -i sine=frequency=440:duration=3 /tmp/t.wav
-rv transcribe /tmp/t.wav --model small   # 需要模型；CI 不跑这一步
-rv frames   /tmp/t.wav --times 0 --out /tmp/f
+readvideo transcribe /tmp/t.wav --model small   # 需要模型；CI 不跑这一步
+readvideo frames   /tmp/t.wav --times 0 --out /tmp/f
 ```
 
 ## 提交规范

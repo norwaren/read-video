@@ -5,6 +5,14 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **Windows PowerShell 下 `rv` 命令被内置别名遮蔽**：`rv` 是 `Remove-Variable` 的别名，
+  敲 `rv --version` 会报 `Cannot find a variable with the name '--version'`。
+  新增 `readvideo` 入口点（长名不受影响），文档与 CI 改用长名，`rv` 保留给 bash/zsh/cmd。
+- **CI 在 macOS 上失败**：`FedericoCarboni/setup-ffmpeg` 不支持 arm64 runner。
+  改为按平台安装（apt / brew / choco）。
+
 ## [0.1.0] - 2026-10-27
 
 首个可用版本。

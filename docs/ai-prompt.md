@@ -16,10 +16,10 @@
 <把视频链接或本地文件路径贴在这里>
 
 要求：
-1. 先 `rv probe` 确认能读、拿到时长
-2. 抽帧：`rv frames <src> --times 10,60,120,180 --out frames`
+1. 先 `readvideo probe` 确认能读、拿到时长
+2. 抽帧：`readvideo frames <src> --times 10,60,120,180 --out frames`
    —— 如果报 `Peer certificate failed verification`，加 `--insecure-tls` 重试
-3. 转写：`rv transcribe <媒体文件> --hotwords "这个视频里的专有名词,人名,术语"`
+3. 转写：`readvideo transcribe <媒体文件> --hotwords "这个视频里的专有名词,人名,术语"`
    —— 热词直接决定专有名词准确率，先想清楚再跑
 4. 报告里必须包含：
    - 一句话概括
@@ -39,17 +39,17 @@
 https://github.com/norwaren/read-video
 
 ## 前置检查（第一次用时执行）
-- `rv --version` 能跑 → 已安装
+- `readvideo --version` 能跑 → 已安装
 - 不能跑 → `pip install -e .`（需要 Python 3.10+ 和 ffmpeg 在 PATH 上）
-- 模型：`rv model --size small`，然后把路径告诉命令行：
+- 模型：`readvideo model --size small`，然后把路径告诉命令行：
   设环境变量 `READ_VIDEO_MODEL` 指向下载目录（Windows: `$env:READ_VIDEO_MODEL=...`）
   没设也行，会自动按名字在线拉
 
 ## 四个命令
-- `rv probe <src>`        时长 / 编码 / 流信息，先确认能不能读
-- `rv fetch <url> --out F` 下载签名直链（自动带 Referer/UA）
-- `rv frames <src> --times 30,90 --out DIR [--width 1024] [--insecure-tls]`
-- `rv transcribe <media> --hotwords "词1,词2" [--model medium] [--language zh]`
+- `readvideo probe <src>`        时长 / 编码 / 流信息，先确认能不能读
+- `readvideo fetch <url> --out F` 下载签名直链（自动带 Referer/UA）
+- `readvideo frames <src> --times 30,90 --out DIR [--width 1024] [--insecure-tls]`
+- `readvideo transcribe <media> --hotwords "词1,词2" [--model medium] [--language zh]`
   产出 `<prefix>.txt`（纯台词）和 `<prefix>.srt`（带时间轴）
 
 `<src>` 可以是本地文件或 http(s) URL。抽帧吃远程 URL 时不会下载整片。
@@ -57,11 +57,11 @@ https://github.com/norwaren/read-video
 ## 你必须知道的四个坑
 1. **抖音 / TikTok 不能直接用 yt-dlp**（要 cookies）。正确做法：在浏览器里播放，
    从网络面板抓 `media-audio-und-mp4a`（音轨）和 `media-video-hvc1`（视频轨）的完整 URL，
-   签名有时效，抓完立刻 `rv fetch`。细节见仓库 `docs/douyin.md`。
+   签名有时效，抓完立刻 `readvideo fetch`。细节见仓库 `docs/douyin.md`。
 2. **抽帧报 `Peer certificate failed verification`** → 机器上有 TLS 中间人（杀软/代理），
    加 `--insecure-tls`。这是用户显式授权的降级，不要默认打开。
 3. **热词决定专有名词准确率**。跑之前先问自己：这个领域的专有名词是什么？全塞进 `--hotwords`。
-4. **不要用浏览器截图代替 `rv frames`**：登录弹窗会周期性重弹，截出来全是二维码。
+4. **不要用浏览器截图代替 `readvideo frames`**：登录弹窗会周期性重弹，截出来全是二维码。
 
 ## 输出格式
 按这个结构写摘要：

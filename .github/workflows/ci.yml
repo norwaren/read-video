@@ -26,8 +26,18 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install ffmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v3
+      # setup-ffmpeg does not support arm64 runners, so install per platform.
+      - name: Install ffmpeg (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install ffmpeg (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg
+
+      - name: Install ffmpeg (Windows)
+        if: runner.os == 'Windows'
+        run: choco install ffmpeg -y --no-progress
 
       - name: Install package
         run: |
@@ -40,7 +50,10 @@ jobs:
       - name: Test
         run: pytest -q
 
+      # `rv` is a built-in alias for Remove-Variable in PowerShell, so use the
+      # long name here. Both entry points ship from pyproject.toml.
       - name: Smoke test CLI
         run: |
-          rv --version
-          rv frames --help
+          readvideo --version
+          readvideo frames --help
+          readvideo --help

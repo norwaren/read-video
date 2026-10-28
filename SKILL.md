@@ -9,7 +9,9 @@ whenToUse: 用户给出视频链接或文件，要求总结内容、提取台词
 用 `rv` 把视频变成可读文本 + 关键帧，然后写摘要。
 
 前置：`pip install -e .`（仓库根目录），`ffmpeg` 在 PATH 上，模型已就位
-（`rv model --size small` 或设 `READ_VIDEO_MODEL`）。
+（`readvideo model --size small` 或设 `READ_VIDEO_MODEL`）。
+
+> Windows PowerShell 里 `rv` 是 `Remove-Variable` 的内置别名，会盖住同名命令 —— 一律用 `readvideo`。
 
 ## 能力边界（先说实话）
 
@@ -26,10 +28,10 @@ whenToUse: 用户给出视频链接或文件，要求总结内容、提取台词
 ## 命令
 
 ```bash
-rv probe "<src>"                          # 时长/编码，先确认能读
-rv fetch "<URL>" --out media/clip.m4a     # 下载签名直链
-rv frames "<src>" --times 60,200,350 --out media/frames
-rv transcribe media/clip.m4a --out media/clip \
+readvideo probe "<src>"                          # 时长/编码，先确认能读
+readvideo fetch "<URL>" --out media/clip.m4a     # 下载签名直链
+readvideo frames "<src>" --times 60,200,350 --out media/frames
+readvideo transcribe media/clip.m4a --out media/clip \
     --hotwords "专有名词1,专有名词2"
 ```
 
@@ -40,7 +42,7 @@ rv transcribe media/clip.m4a --out media/clip \
 | 平台 | 走法 |
 |---|---|
 | 抖音 | 浏览器播放 → 抓签名直链（yt-dlp 要 cookies，别用）。详见 `docs/douyin.md` |
-| B站/YouTube | 先 `yt-dlp -f bestaudio`，再 `rv transcribe`；有独立字幕轨就直接抓文本，省掉转写 |
+| B站/YouTube | 先 `yt-dlp -f bestaudio`，再 `readvideo transcribe`；有独立字幕轨就直接抓文本，省掉转写 |
 | 本地文件 | 直接 `transcribe` + `frames` |
 
 ## 抖音流程（实测）
@@ -53,7 +55,7 @@ rv transcribe media/clip.m4a --out media/clip \
    - `media-audio-und-mp4a` = 纯音轨（转写够用，体积小）
    - `media-video-hvc1` = 视频轨（抽帧用）
    - **签名有时效，抓完立刻下**
-6. `rv fetch` 下音轨 → `rv frames` 抽帧 → `rv transcribe` 转写。
+6. `readvideo fetch` 下音轨 → `readvideo frames` 抽帧 → `readvideo transcribe` 转写。
 
 ## 热词是质量关键
 
@@ -84,8 +86,8 @@ rv transcribe media/clip.m4a --out media/clip \
 | 现象 | 解法 |
 |---|---|
 | yt-dlp 报 `Fresh cookies are needed` | 抖音要登录态，改抓浏览器直链 |
-| 截图全是登录二维码 | 弹窗会自动重弹，抽帧走 `rv frames` 直连 URL |
-| HF API 502 / 模型下到一半断 | `rv model` 走 `huggingface_hub`，自带分片续传；国内可设 `HF_ENDPOINT=https://hf-mirror.com` |
+| 截图全是登录二维码 | 弹窗会自动重弹，抽帧走 `readvideo frames` 直连 URL |
+| HF API 502 / 模型下到一半断 | `readvideo model` 走 `huggingface_hub`，自带分片续传；国内可设 `HF_ENDPOINT=https://hf-mirror.com` |
 | `TypeError: ... 'metadata_errors'` | faster-whisper 锁旧版 `av`；本项目用 ffmpeg→f32le→numpy 绕开 |
 | 签名 URL 403 | 链接过期了，回浏览器重新抓一条 |
 | 抽帧报 `Invalid argument` | 输入只有音轨没有视频流；抽帧必须用视频轨 |

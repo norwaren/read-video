@@ -32,8 +32,8 @@
 
 ```
         ┌──────────────────────────────────────────┐
-        │  cli.py     rv probe|frames|transcribe    │  ← 唯一入口，5 个子命令
-        │             rv fetch|model                │
+        │  cli.py     readvideo probe|frames|transcribe    │  ← 唯一入口，5 个子命令
+        │             readvideo fetch|model                │
         └───────┬───────────────┬──────────────────┘
                 │               │
       ┌─────────▼──────┐  ┌─────▼──────────┐
@@ -128,7 +128,7 @@
 |---|---|
 | 说话人分离 | `pyannote` / `whisperx`，把"谁在说"标出来。访谈、会议、多人对话必须有 |
 | 字幕强制对齐 | 用 `stable-ts` 把已有字幕轨/文稿对齐到音频，比纯 ASR 准得多 |
-| 批量模式 | `rv transcribe *.m4a` / 目录递归，产物按文件名落盘 |
+| 批量模式 | `readvideo transcribe *.m4a` / 目录递归，产物按文件名落盘 |
 | 关键词高亮 | 从热词表反查命中片段，直接给"哪些时间段提到了 X" |
 | GPU 自动探测 | 有 CUDA 就 `float16`，没有就 `int8`，省掉手动参数 |
 

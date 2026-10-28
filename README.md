@@ -11,9 +11,9 @@ A tiny CLI that turns a video into readable material:
 
 ```
 视频 / 链接
-   ├─ rv fetch       → 媒体文件（音轨或视频轨，支持签名直链）
-   ├─ rv frames      → 关键帧 PNG（远程 URL 也能抽，不下载整片）
-   └─ rv transcribe  → 逐字稿 .txt + 字幕 .srt
+   ├─ readvideo fetch       → 媒体文件（音轨或视频轨，支持签名直链）
+   ├─ readvideo frames      → 关键帧 PNG（远程 URL 也能抽，不下载整片）
+   └─ readvideo transcribe  → 逐字稿 .txt + 字幕 .srt
 ```
 
 - [为什么再造一个轮子](#为什么再造一个轮子)
@@ -37,7 +37,7 @@ A tiny CLI that turns a video into readable material:
 |---|---|---|
 | `whisper-ctranslate2 --model <路径>` | CLI 只接受模型名（`tiny`/`small`/…），本地模型目录直接报 `invalid choice` | 直接调 `faster-whisper` 的 Python API，路径和模型名都吃 |
 | faster-whisper × `av` 版本冲突 | 新版本 faster-whisper 调 `av.open(..., metadata_errors=...)`，旧版 `av` 没有这个参数 → `TypeError` | 音频先用 ffmpeg 解码成 `f32le`，再喂 numpy 数组，**完全不经过 `av`** |
-| 抖音 / TikTok 直链 | `yt-dlp` 的 douyin 提取器要求 cookies，未登录报 `Fresh cookies ... are needed` | `rv fetch` 处理带签名的 CDN 直链（自动带 `Referer`/`UA`），配合 [`docs/douyin.md`](docs/douyin.md) 的抓流步骤 |
+| 抖音 / TikTok 直链 | `yt-dlp` 的 douyin 提取器要求 cookies，未登录报 `Fresh cookies ... are needed` | `readvideo fetch` 处理带签名的 CDN 直链（自动带 `Referer`/`UA`），配合 [`docs/douyin.md`](docs/douyin.md) 的抓流步骤 |
 
 顺带的好处：下载只用标准库 `urllib`，**零额外 HTTP 依赖**。
 
@@ -60,7 +60,7 @@ uv run --with faster-whisper --with numpy --module readvideo --help
 ### 拉模型（推荐，一次即可）
 
 ```bash
-rv model --size small --dest models/faster-whisper-small
+readvideo model --size small --dest models/faster-whisper-small
 ```
 
 然后指过去（不设也行，默认按名字在线拉）：
@@ -71,6 +71,11 @@ $env:READ_VIDEO_MODEL = "D:\path\to\models\faster-whisper-small"
 # bash / zsh
 export READ_VIDEO_MODEL="$HOME/models/faster-whisper-small"
 ```
+
+> ⚠️ **Windows PowerShell 用户注意**：`rv` 是 PowerShell 的内置别名（`Remove-Variable`），
+> 会盖住同名命令，敲 `rv` 报 `Remove-Variable: 找不到与参数名称"version"匹配的参数`。
+> 用长名 `readvideo` 就行，或者临时 `Remove-Item Alias:rv` / 直接调 `rv.exe`。
+> CI 里也是踩了这个坑才改成 `readvideo`。
 
 | size | 体积 | 中文口播 | 速度（CPU int8） |
 |---|---|---|---|
@@ -84,13 +89,13 @@ export READ_VIDEO_MODEL="$HOME/models/faster-whisper-small"
 
 ```bash
 # 1. 看看这个文件/链接是什么
-rv probe media/clip.mp4
+readvideo probe media/clip.mp4
 
 # 2. 抽帧：60s、200s、350s 各一张
-rv frames media/clip.mp4 --times 60,200,350 --out frames
+readvideo frames media/clip.mp4 --times 60,200,350 --out frames
 
 # 3. 转写：中文 + 领域热词
-rv transcribe media/clip.m4a --hotwords "绝密航天,红狼,威龙,碎头"
+readvideo transcribe media/clip.m4a --hotwords "绝密航天,红狼,威龙,碎头"
 ```
 
 输出：
@@ -104,7 +109,7 @@ frames/f-060.png ...    关键帧
 远程 URL 同样能抽帧 —— ffmpeg 用 range 请求只取需要的那几段，不会下整片：
 
 ```bash
-rv frames "https://cdn.example/video.mp4?sig=..." --times 30,90 --out frames
+readvideo frames "https://cdn.example/video.mp4?sig=..." --times 30,90 --out frames
 ```
 
 ## 实测
@@ -115,9 +120,9 @@ rv frames "https://cdn.example/video.mp4?sig=..." --times 30,90 --out frames
 
 | 步骤 | 命令 | 结果 | 耗时 |
 |---|---|---|---|
-| 下载音轨 | `rv fetch` | 5.70 MB m4a | 约 3 秒 |
-| 抽帧 | `rv frames --times 20,90,160,220` | 4 张 900px PNG | 0.2 秒 / 帧 |
-| 转写 | `rv transcribe --hotwords "缅北,诈骗园区,…"` | 101 段 / 819 字 + SRT | **50 秒**（≈ 5× 实时） |
+| 下载音轨 | `readvideo fetch` | 5.70 MB m4a | 约 3 秒 |
+| 抽帧 | `readvideo frames --times 20,90,160,220` | 4 张 900px PNG | 0.2 秒 / 帧 |
+| 转写 | `readvideo transcribe --hotwords "缅北,诈骗园区,…"` | 101 段 / 819 字 + SRT | **50 秒**（≈ 5× 实时） |
 
 ### 画面字幕 vs ASR 输出
 
@@ -152,15 +157,15 @@ rv frames "https://cdn.example/video.mp4?sig=..." --times 30,90 --out frames
 
 | 命令 | 作用 | 关键参数 |
 |---|---|---|
-| `rv probe <src>` | 打印时长 / 大小 / 流信息 | `--referer` |
-| `rv frames <src>` | 按秒抽帧 | `--times 30,90`、`--out`、`--width`、`--insecure-tls` |
-| `rv transcribe <media>` | 转写为 txt + srt | `--model`、`--hotwords`、`--language`、`--no-vad` |
-| `rv fetch <url>` | 下载签名直链 | `--out`、`--referer`、`--timeout` |
-| `rv model` | 下载 faster-whisper 模型 | `--size`、`--dest`、`--workers` |
+| `readvideo probe <src>` | 打印时长 / 大小 / 流信息 | `--referer` |
+| `readvideo frames <src>` | 按秒抽帧 | `--times 30,90`、`--out`、`--width`、`--insecure-tls` |
+| `readvideo transcribe <media>` | 转写为 txt + srt | `--model`、`--hotwords`、`--language`、`--no-vad` |
+| `readvideo fetch <url>` | 下载签名直链 | `--out`、`--referer`、`--timeout` |
+| `readvideo model` | 下载 faster-whisper 模型 | `--size`、`--dest`、`--workers` |
 
 `<src>` 可以是本地路径，也可以是 `http(s)` URL。
 
-`rv transcribe` 还支持 `--device cuda`（需 CUDA 版 ctranslate2）、`--compute-type`、
+`readvideo transcribe` 还支持 `--device cuda`（需 CUDA 版 ctranslate2）、`--compute-type`、
 `--threads`、`--beam-size`，默认值是 CPU + int8 + 8 线程。
 
 ## 热词：质量的决定因素
@@ -213,7 +218,7 @@ rv frames "https://cdn.example/video.mp4?sig=..." --times 30,90 --out frames
 ## FAQ
 
 **Q：为什么不直接内置 `yt-dlp`？**
-A：`yt-dlp` 已经很成熟，B站/YouTube 用 `yt-dlp -f bestaudio` 下好再 `rv transcribe` 更稳。
+A：`yt-dlp` 已经很成熟，B站/YouTube 用 `yt-dlp -f bestaudio` 下好再 `readvideo transcribe` 更稳。
 只有它覆盖不了的场景（比如需要浏览器态的签名直链）才值得自己写，`docs/douyin.md` 就是这个场景。
 
 **Q：一定要浏览器吗？**
@@ -230,7 +235,7 @@ A：见[上面](#为什么再造一个轮子)那张表 —— faster-whisper 1.x
 用 ffmpeg 解码顺手还少了 C 扩展的安装麻烦。
 
 **Q：模型下载很慢怎么办？**
-A：`rv model` 走 `huggingface_hub`，自带分片和续传。国内网络可先设 `HF_ENDPOINT=https://hf-mirror.com`。
+A：`readvideo model` 走 `huggingface_hub`，自带分片和续传。国内网络可先设 `HF_ENDPOINT=https://hf-mirror.com`。
 
 **Q：抽帧报 `Peer certificate failed verification`？**
 A：你机器上有 TLS 中间人（杀软、企业代理、抓包工具在换证书），ffmpeg 走 schannel 时校验不过。
