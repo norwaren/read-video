@@ -40,3 +40,22 @@ def test_repo_for_known_and_custom() -> None:
     assert models.repo_for("org/custom-model") == "org/custom-model"
     with pytest.raises(ValueError):
         models.repo_for("gigantic")
+
+
+def test_help_is_ascii_only() -> None:
+    """Regression: a cp1252 console crashed on non-ASCII help (UnicodeEncodeError)."""
+    help_text = build_parser().format_help()
+    assert help_text.isascii(), "help output must stay ASCII"
+    help_text.encode("cp1252")  # must not raise
+
+
+def test_subcommand_help_is_ascii_only() -> None:
+    for command in ("probe", "frames", "transcribe", "fetch", "model"):
+        text = build_parser()._subparsers._group_actions[0].choices[command].format_help()
+        assert text.isascii(), f"{command} help must stay ASCII"
+        text.encode("cp1252")
+
+
+def test_prog_name_follows_argv(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("sys.argv", ["/usr/local/bin/readvideo"])
+    assert build_parser().prog == "readvideo"

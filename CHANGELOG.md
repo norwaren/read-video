@@ -12,6 +12,14 @@ All notable changes to this project are documented here.
   新增 `readvideo` 入口点（长名不受影响），文档与 CI 改用长名，`rv` 保留给 bash/zsh/cmd。
 - **CI 在 macOS 上失败**：`FedericoCarboni/setup-ffmpeg` 不支持 arm64 runner。
   改为按平台安装（apt / brew / choco）。
+- **Windows 控制台 cp1252 下 `--help` 崩溃**：帮助文本里的中文让
+  `UnicodeEncodeError: 'charmap' codec` 抛出。帮助文本改为纯 ASCII，
+  同时把 stdout/stderr 重配置为 UTF-8 + `errors="replace"`，避免打印中文路径/标题时炸。
+- `--help` 里的程序名不再写死 `rv`：跟 `sys.argv[0]` 走，`python -m readvideo` 也不再显示 `__main__.py`。
+
+### Changed
+
+- CI 矩阵去掉 macOS（arm64 runner 的 ffmpeg 另需处理，当前无人使用），保留 Ubuntu + Windows。
 
 ## [0.1.0] - 2026-10-27
 

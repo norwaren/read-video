@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
         python: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@v4
@@ -26,14 +26,11 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      # setup-ffmpeg does not support arm64 runners, so install per platform.
+      # macOS is intentionally out of the matrix for now: the arm64 runners need a
+      # different ffmpeg story (setup-ffmpeg only ships x64) and nobody here runs it.
       - name: Install ffmpeg (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
-
-      - name: Install ffmpeg (macOS)
-        if: runner.os == 'macOS'
-        run: brew install ffmpeg
 
       - name: Install ffmpeg (Windows)
         if: runner.os == 'Windows'

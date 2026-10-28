@@ -3,17 +3,21 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import sys
 from pathlib import Path
 
 from . import __version__, asr, media, models
 
 EPILOG = """examples:
-  rv probe clip.mp4
-  rv frames "https://cdn.example/v.mp4?sig=..." --times 30,90 --out frames
-  rv transcribe clip.m4a --hotwords "绝密航天,红狼,威龙"
-  rv model --size small --dest models/faster-whisper-small
-  rv fetch "https://cdn.example/a.m4a?sig=..." --out media/clip.m4a
+  readvideo probe clip.mp4
+  readvideo frames "https://cdn.example/v.mp4?sig=..." --times 30,90 --out frames
+  readvideo transcribe clip.m4a --hotwords "proper,nouns,here"
+  readvideo model --size small --dest models/faster-whisper-small
+  readvideo fetch "https://cdn.example/a.m4a?sig=..." --out media/clip.m4a
+
+Help text stays ASCII on purpose: a Windows console on a cp1252 locale raises
+UnicodeEncodeError when asked to print non-ASCII help.
 """
 
 
@@ -24,9 +28,32 @@ def _times(value: str) -> list[int]:
         raise argparse.ArgumentTypeError(f"expected comma separated seconds, got {value!r}") from exc
 
 
-def build_parser() -> argparse.ArgumentParser:
+def _configure_stdio() -> None:
+    """Make stdout/stderr UTF-8 with replacement instead of crashing on Windows.
+
+    A cp1252 console raises UnicodeEncodeError when we print a path or a title
+    that contains CJK characters. Reconfiguring keeps output readable and never
+    turns a successful run into a traceback.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        with contextlib.suppress(ValueError, OSError):
+            reconfigure(encoding="utf-8", errors="replace")
+
+
+def _prog() -> str:
+    """Name shown in --help: `python -m readvideo` must not print `__main__.py`."""
+    name = Path(sys.argv[0]).name
+    if name in {"__main__.py", "-c", ""}:
+        return "readvideo"
+    return Path(name).stem or "readvideo"
+
+
+def build_parser(prog: str | None = None) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="rv",
+        prog=prog or _prog(),
         description="Read a video: grab still frames and transcribe speech.",
         epilog=EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -82,6 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _configure_stdio()
     args = build_parser().parse_args(argv)
 
     try:
