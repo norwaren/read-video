@@ -25,6 +25,7 @@ A tiny CLI that turns a video into readable material:
 - [能力边界](#能力边界)
 - [给 AI agent 用](#给-ai-agent-用)
 - [设计思路与可开的分支](docs/design.md)
+- [把项目交给 AI 用的提示词](docs/ai-prompt.md)
 - [FAQ](#faq)
 - [参考与致谢](#参考与致谢)
 
@@ -194,6 +195,20 @@ rv frames "https://cdn.example/video.mp4?sig=..." --times 30,90 --out frames
 等所有读 `SKILL.md` 的宿主。放进 skills 目录即可，agent 遇到「读视频」任务会自动加载。
 
 [`AGENTS.md`](AGENTS.md) 是本仓库的开发约定（给改代码的 agent 看）。
+
+**想让 AI 直接帮你读视频？** 不用让它读源码 —— [`docs/ai-prompt.md`](docs/ai-prompt.md)
+里有两段复制即用的提示词：
+
+- **一句话版**：临时任务，把视频链接贴进去就完事
+- **完整系统提示词**：塞进 system prompt / `AGENTS.md`，AI 就长期具备装好、跑通、排错的能力
+
+```
+用 read-video（命令 rv）帮我读这个视频，出一份中文摘要：
+<链接>
+要求：先 probe 确认、抽帧看画面字幕、带热词转写、最后按时间轴分段总结。
+```
+
+前提是 AI 能执行命令（有 shell）。纯对话界面用不了 —— 得先让有环境的机器转成 `.txt` / `.srt`。
 
 ## FAQ
 

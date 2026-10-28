@@ -1,0 +1,27 @@
+﻿# media / models / outputs
+/models/
+/media/
+out/
+/frames/
+*.wav
+*.m4a
+*.f32
+*.mp4
+*.mkv
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+pytest-of-*/
+.pytest_cache/
+.ruff_cache/
